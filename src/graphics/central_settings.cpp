@@ -52,6 +52,7 @@ void CentralVideoSettings::init()
     hasGS = false;
     hasTextureFilterAnisotropic = false;
     hasTextureSwizzle = false;
+    hasShaderSubroutine = false;
 
 #if defined(USE_GLES2)
     hasBGRA = false;
@@ -195,6 +196,11 @@ void CentralVideoSettings::init()
         {
             hasTextureSwizzle = true;
             Log::info("GLDriver", "ARB Texture Swizzle Present");
+        }
+        if (hasGLExtension("GL_ARB_shader_subroutine"))
+        {
+            hasShaderSubroutine = true;
+            Log::info("GLDriver", "ARB Shader Subroutine Present");
         }
         // Only unset the high def textures if they are set as default. If the
         // user has enabled them (bit 1 set), then leave them enabled.
@@ -474,6 +480,20 @@ bool CentralVideoSettings::supportsHardwareSkinning() const
 bool CentralVideoSettings::isARBTextureSwizzleUsable() const
 {
     return m_glsl && hasTextureSwizzle;
+}
+
+bool CentralVideoSettings::isARBShaderSubroutineUsable() const
+{
+    return hasShaderSubroutine;
+}
+
+bool CentralVideoSettings::supportsGPUCulling() const
+{
+    return supportsHardwareSkinning() && isARBShaderSubroutineUsable()
+        && isARBMultiDrawIndirectUsable() && supportsAsyncInstanceUpload()
+        && isARBExplicitAttribLocationUsable()
+        && isARBShaderAtomicCountersUsable()
+        && isARBShaderStorageBufferObjectUsable();
 }
 
 #endif   // !SERVER_ONLY

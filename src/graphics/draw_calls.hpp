@@ -116,6 +116,7 @@ public:
     void multidrawGlow() const;
     void renderBoundingBoxes();
     int32_t getSkinningOffset() const;
+    const irr::core::vector3df& getWindDir() const { return m_wind_dir; }
 };
 
 #endif   // !SERVER_ONLY

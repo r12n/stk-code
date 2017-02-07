@@ -20,6 +20,7 @@
 #include "graphics/vao_manager.hpp"
 
 #include "graphics/central_settings.hpp"
+#include "graphics/culling_manager.hpp"
 #include "graphics/glwrap.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/stk_mesh.hpp"
@@ -39,6 +40,8 @@ VAOManager::VAOManager()
 
     for (unsigned i = 0; i < InstanceTypeCount; i++)
     {
+        if (i == InstanceTypeCulling)
+            continue;
         glGenBuffers(1, &instance_vbo[i]);
         glBindBuffer(GL_ARRAY_BUFFER, instance_vbo[i]);
 #if !defined(USE_GLES2)
@@ -77,6 +80,8 @@ VAOManager::~VAOManager()
     }
     for (unsigned i = 0; i < InstanceTypeCount; i++)
     {
+        if (i == InstanceTypeCulling)
+            continue;
         glDeleteBuffers(1, &instance_vbo[i]);
     }
 
@@ -257,6 +262,25 @@ void VAOManager::regenerateInstancedVAO()
         glBindBuffer(GL_ARRAY_BUFFER, instance_vbo[InstanceTypeGlow]);
         VAOInstanceUtil<GlowInstanceData>::SetVertexAttrib();
         InstanceVAO[std::pair<video::E_VERTEX_TYPE, InstanceType>(tp, InstanceTypeGlow)] = vao;
+
+        vao = createVAO(vbo[tp], ibo[tp], tp);
+        glBindBuffer(GL_ARRAY_BUFFER, CullingManager::getInstance()->getInstances());
+        glEnableVertexAttribArray(7);
+        glVertexAttribIPointer(7, 1, GL_UNSIGNED_INT, 20 * sizeof(uint32_t), (GLvoid*)(8 * sizeof(uint32_t)));
+        glVertexAttribDivisorARB(7, 10000);
+        glEnableVertexAttribArray(8);
+        glVertexAttribIPointer(8, 2, GL_UNSIGNED_INT, 20 * sizeof(uint32_t), (GLvoid*)(12 * sizeof(uint32_t)));
+        glVertexAttribDivisorARB(8, 10000);
+        glEnableVertexAttribArray(9);
+        glVertexAttribIPointer(9, 2, GL_UNSIGNED_INT, 20 * sizeof(uint32_t), (GLvoid*)(14 * sizeof(uint32_t)));
+        glVertexAttribDivisorARB(9, 10000);
+        glEnableVertexAttribArray(10);
+        glVertexAttribIPointer(10, 2, GL_UNSIGNED_INT, 20 * sizeof(uint32_t), (GLvoid*)(16 * sizeof(uint32_t)));
+        glVertexAttribDivisorARB(10, 10000);
+        glEnableVertexAttribArray(11);
+        glVertexAttribIPointer(11, 2, GL_UNSIGNED_INT, 20 * sizeof(uint32_t), (GLvoid*)(18 * sizeof(uint32_t)));
+        glVertexAttribDivisorARB(11, 10000);
+        InstanceVAO[std::pair<video::E_VERTEX_TYPE, InstanceType>(tp, InstanceTypeCulling)] = vao;
 
         glBindVertexArray(0);
     }

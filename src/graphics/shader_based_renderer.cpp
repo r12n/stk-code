@@ -22,6 +22,7 @@
 #include "config/user_config.hpp"
 #include "graphics/camera.hpp"
 #include "graphics/central_settings.hpp"
+#include "graphics/culling_manager.hpp"
 #include "graphics/draw_policies.hpp"
 #include "graphics/geometry_passes.hpp"
 #include "graphics/glwrap.hpp"
@@ -262,7 +263,7 @@ void ShaderBasedRenderer::renderScene(scene::ICameraSceneNode * const camnode,
     m_poly_count[SHADOW_PASS] += shadow_poly_count;
     PROFILER_POP_CPU_MARKER();
 
-#if !defined(USE_GLES2)    
+#if !defined(USE_GLES2)
     // Shadows
     {
         // To avoid wrong culling, use the largest view possible
@@ -600,6 +601,12 @@ void ShaderBasedRenderer::renderPostProcessing(Camera * const camera)
     else if (irr_driver->getShadowViz())
     {
         m_shadow_matrices.renderShadowsDebug(m_rtts->getShadowFrameBuffer(), m_post_processing);
+    }
+    else if (CullingManager::getInstance()->getBBViz())
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        camera->activate();
+        m_post_processing->renderPassThrough(m_rtts->getFBO(FBO_TMP2_WITH_DS).getRTT()[0], viewport.LowerRightCorner.X - viewport.UpperLeftCorner.X, viewport.LowerRightCorner.Y - viewport.UpperLeftCorner.Y);
     }
     else
     {
@@ -997,5 +1004,11 @@ void ShaderBasedRenderer::preloadShaderFiles()
     }
 
 } //preloadShaderFiles
+
+// ----------------------------------------------------------------------------
+FrameBuffer* ShaderBasedRenderer::getFBO(TypeFBO fbo) const
+{
+    return &m_rtts->getFBO(fbo);
+} //getFBO
 
 #endif   // !SERVER_ONLY

@@ -18,6 +18,7 @@
 #ifndef SERVER_ONLY
 
 #include "graphics/draw_policies.hpp"
+#include "graphics/culling_manager.hpp"
 #include "graphics/draw_calls.hpp"
 #include "graphics/draw_tools.hpp"
 #include "graphics/materials.hpp"
@@ -260,8 +261,30 @@ void GL3DrawPolicy::drawReflectiveShadowMap(const DrawCalls& draw_calls,
 void IndirectDrawPolicy::drawSolidFirstPass(const DrawCalls& draw_calls) const
 {
 #if !defined(USE_GLES2)
+    CullingManager* cm = CullingManager::getInstance();
+    if (cm->bindInstanceVAO(DefaultMaterial::VertexType))
+    {
+        cm->drawSolidFirstPass<DefaultMaterial>();
+        cm->drawSolidFirstPass<AlphaRef>();
+        cm->drawSolidFirstPass<UnlitMat>();
+        cm->drawSolidFirstPass<GrassMat>(draw_calls.getWindDir());
+    }
+    if (cm->bindInstanceVAO(NormalMat::VertexType))
+    {
+        cm->drawSolidFirstPass<NormalMat>();
+    }
+    if (cm->bindInstanceVAO(SkinnedSolid::VertexType))
+    {
+        cm->drawSolidFirstPass<SkinnedSolid>();
+        cm->drawSolidFirstPass<SkinnedAlphaRef>();
+        cm->drawSolidFirstPass<SkinnedUnlitMat>();
+        cm->drawSolidFirstPass<SkinnedNormalMat>();
+    }
+    if (cm->bindInstanceVAO(DetailMat::VertexType))
+    {
+        cm->drawSolidFirstPass<DetailMat>();
+    }
     renderMeshes1stPass<SplattingMat, 2, 1>();
-    draw_calls.drawIndirectSolidFirstPass();
 #endif //!defined(USE_GLES2)
 }
 
@@ -271,8 +294,31 @@ void IndirectDrawPolicy::drawSolidSecondPass (const DrawCalls& draw_calls,
                                               const std::vector<GLuint>& prefilled_tex) const
 {
 #if !defined(USE_GLES2)
+    CullingManager* cm = CullingManager::getInstance();
+    if (cm->bindInstanceVAO(DefaultMaterial::VertexType))
+    {
+        cm->drawSolidSecondPass<DefaultMaterial>(prefilled_tex, handles);
+        cm->drawSolidSecondPass<AlphaRef>(prefilled_tex, handles);
+        cm->drawSolidSecondPass<UnlitMat>(prefilled_tex, handles);
+        cm->drawSolidSecondPass<GrassMat>(prefilled_tex, handles,
+            draw_calls.getWindDir());
+    }
+    if (cm->bindInstanceVAO(NormalMat::VertexType))
+    {
+        cm->drawSolidSecondPass<NormalMat>(prefilled_tex, handles);
+    }
+    if (cm->bindInstanceVAO(SkinnedSolid::VertexType))
+    {
+        cm->drawSolidSecondPass<SkinnedSolid>(prefilled_tex, handles);
+        cm->drawSolidSecondPass<SkinnedAlphaRef>(prefilled_tex, handles);
+        cm->drawSolidSecondPass<SkinnedUnlitMat>(prefilled_tex, handles);
+        cm->drawSolidSecondPass<SkinnedNormalMat>(prefilled_tex, handles);
+    }
+    if (cm->bindInstanceVAO(DetailMat::VertexType))
+    {
+        cm->drawSolidSecondPass<DetailMat>(prefilled_tex, handles);
+    }
     renderMeshes2ndPass<SplattingMat, 1> (handles, prefilled_tex);
-    draw_calls.drawIndirectSolidSecondPass(prefilled_tex);
 #endif //!defined(USE_GLES2)
 }
 

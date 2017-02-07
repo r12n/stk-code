@@ -99,44 +99,6 @@ void FillInstances_impl(const InstanceList& instance_list,
     poly_count += (instance_buffer_offset - initial_offset) * mesh->IndexCount / 3;
 }
 
-// ----------------------------------------------------------------------------
-/** Bind textures for second rendering pass.
- *  \param mesh The mesh which owns the textures
- *  \param prefilled_tex Textures which have been drawn during previous rendering passes.
- */
-template<typename T>
-void expandTexSecondPass(const GLMesh &mesh,
-                         const std::vector<GLuint> &prefilled_tex)
-{
-    TexExpander<typename T::InstancedSecondPassShader>::template
-        expandTex(mesh, T::SecondPassTextures, prefilled_tex[0],
-                  prefilled_tex[1], prefilled_tex[2]);
-}
-
-template<>
-void expandTexSecondPass<GrassMat>(const GLMesh &mesh,
-                                   const std::vector<GLuint> &prefilled_tex);
-                                   
-// ----------------------------------------------------------------------------
-/** Give acces textures for second rendering pass in shaders 
- * without first binding them in order to reduce driver overhead.
- * (require GL_ARB_bindless_texture extension) 
- *  \param handles The handles to textures which have been drawn 
- *                 during previous rendering passes.
- */ 
-template<typename T>
-void expandHandlesSecondPass(const std::vector<uint64_t> &handles)
-{
-    uint64_t nulltex[10] = {};
-    HandleExpander<typename T::InstancedSecondPassShader>::template
-        expand(nulltex, T::SecondPassTextures,
-               handles[0], handles[1], handles[2]);
-}
-
-template<>
-void expandHandlesSecondPass<GrassMat>(const std::vector<uint64_t> &handles);
-
-
 #if !defined(USE_GLES2)
 // ----------------------------------------------------------------------------
 /**

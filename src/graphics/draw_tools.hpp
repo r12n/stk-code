@@ -21,6 +21,7 @@
 #include "graphics/shader.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/stk_mesh.hpp"
+#include "graphics/materials.hpp"
 
 // ----------------------------------------------------------------------------
 /** Variadic template to draw a mesh (using OpenGL 3.2 function)
@@ -183,5 +184,56 @@ struct HandleExpander
     }   // Expand
 };   // HandleExpander
 
+// ----------------------------------------------------------------------------
+/** Bind textures for second rendering pass.
+ *  \param mesh The mesh which owns the textures
+ *  \param prefilled_tex Textures which have been drawn during previous
+ *   rendering passes.
+ */
+template<typename T>
+void expandTexSecondPass(const GLMesh &mesh,
+                         const std::vector<GLuint> &prefilled_tex)
+{
+    TexExpander<typename T::InstancedSecondPassShader>::template
+        expandTex(mesh, T::SecondPassTextures, prefilled_tex[0],
+                  prefilled_tex[1], prefilled_tex[2]);
+}
+
+// ----------------------------------------------------------------------------
+template<>
+inline void expandTexSecondPass<GrassMat>(const GLMesh &mesh,
+                                   const std::vector<GLuint> &prefilled_tex)
+{
+    TexExpander<typename GrassMat::InstancedSecondPassShader>::
+        expandTex(mesh, GrassMat::SecondPassTextures, prefilled_tex[0],
+                  prefilled_tex[1], prefilled_tex[2], prefilled_tex[3]);
+}
+
+// ----------------------------------------------------------------------------
+/** Give acces textures for second rendering pass in shaders
+ * without first binding them in order to reduce driver overhead.
+ * (require GL_ARB_bindless_texture extension)
+ *  \param handles The handles to textures which have been drawn
+ *                 during previous rendering passes.
+ */
+template<typename T>
+void expandHandlesSecondPass(const std::vector<uint64_t> &handles)
+{
+    uint64_t nulltex[10] = {};
+    HandleExpander<typename T::InstancedSecondPassShader>::template
+        expand(nulltex, T::SecondPassTextures,
+               handles[0], handles[1], handles[2]);
+}
+
+// ----------------------------------------------------------------------------
+template<>
+inline void expandHandlesSecondPass<GrassMat>
+                                         (const std::vector<uint64_t> &handles)
+{
+    uint64_t nulltex[10] = {};
+    HandleExpander<GrassMat::InstancedSecondPassShader>::
+        expand(nulltex, GrassMat::SecondPassTextures,
+               handles[0], handles[1], handles[2], handles[3]);
+}
 
 #endif //HEADER_DRAW_TOOLS_HPP

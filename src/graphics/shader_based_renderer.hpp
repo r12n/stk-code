@@ -28,6 +28,7 @@
 #include <map>
 #include <string>
 
+enum TypeFBO : unsigned int;
 class AbstractGeometryPasses;
 class Camera;
 class GL3RenderTarget;
@@ -103,7 +104,8 @@ public:
     const SHCoefficients* getSHCoefficients() const OVERRIDE;
     GLuint getRenderTargetTexture(TypeRTT which) const OVERRIDE;
     GLuint getDepthStencilTexture() const OVERRIDE;
-    
+    FrameBuffer* getFBO(TypeFBO fbo) const OVERRIDE;
+
     void                  setAmbientLight(const irr::video::SColorf &light,
                                           bool force_SH_computation = true) OVERRIDE;
 

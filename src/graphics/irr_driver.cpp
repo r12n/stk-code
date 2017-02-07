@@ -2090,4 +2090,8 @@ GLuint IrrDriver::getDepthStencilTexture()
     return m_renderer->getDepthStencilTexture();
 }   // getDepthStencilTexture
 
-
+// ----------------------------------------------------------------------------
+FrameBuffer* IrrDriver::getFBO(TypeFBO fbo) const
+{
+    return m_renderer->getFBO(fbo);
+}   // getFBO

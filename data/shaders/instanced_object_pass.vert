@@ -1,3 +1,24 @@
+#ifdef GPU_CULLING
+
+layout(location = 0) in vec3 Position;
+layout(location = 1) in vec3 Normal;
+layout(location = 2) in vec4 Color;
+layout(location = 3) in vec2 Texcoord;
+layout(location = 4) in vec2 SecondTexcoord;
+layout(location = 5) in vec3 Tangent;
+layout(location = 6) in vec3 Bitangent;
+layout(location = 7) in uint draw_id;
+#ifdef Use_Bindless_Texture
+layout(location = 8) in sampler2D Handle;
+layout(location = 9) in sampler2D SecondHandle;
+layout(location = 10) in sampler2D ThirdHandle;
+layout(location = 11) in sampler2D FourthHandle;
+#endif
+
+#stk_include "utils/culling_info.vert"
+
+#else
+
 #ifdef Explicit_Attrib_Location_Usable
 layout(location = 0) in vec3 Position;
 layout(location = 1) in vec3 Normal;
@@ -33,6 +54,10 @@ in vec3 Scale;
 in vec4 misc_data;
 #endif
 
+#stk_include "utils/getworldmatrix.vert"
+
+#endif
+
 out vec3 nor;
 out vec3 tangent;
 out vec3 bitangent;
@@ -47,13 +72,23 @@ flat out sampler2D thirdhandle;
 flat out sampler2D fourthhandle;
 #endif
 
-#stk_include "utils/getworldmatrix.vert"
-
 void main(void)
 {
+#ifdef GPU_CULLING
+
+    uint index = instance_objects[draw_id + gl_InstanceID].m_other_data.w;
+    mat4 ModelMatrix = instance_objects[draw_id + index].m_model_matrix;
+    vec4 misc_data = instance_objects[draw_id + index].m_misc_data;
+    mat4 TransposeInverseModelView = transpose(inverse(ModelMatrix) * InverseViewMatrix);
+
+#else
+
     mat4 ModelMatrix = getWorldMatrix(Origin, Orientation, Scale);
     mat4 TransposeInverseModelView = transpose(getInverseWorldMatrix(Origin, Orientation, Scale) * InverseViewMatrix);
-    gl_Position = ProjectionViewMatrix *  ModelMatrix * vec4(Position, 1.);
+
+#endif
+
+    gl_Position = ProjectionViewMatrix * ModelMatrix * vec4(Position, 1.);
     // Keep orthogonality
     nor = (TransposeInverseModelView * vec4(Normal, 0.)).xyz;
     // Keep direction

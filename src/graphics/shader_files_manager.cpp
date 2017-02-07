@@ -85,6 +85,8 @@ GLuint ShaderFilesManager::loadShader(const std::string &file, unsigned type)
     }
 #endif
 
+    if (CVS->isARBShaderSubroutineUsable())
+        code << "#extension GL_ARB_shader_subroutine : enable\n";
     if (CVS->isAMDVertexShaderLayerUsable())
         code << "#extension GL_AMD_vertex_shader_layer : enable\n";
 
@@ -106,6 +108,8 @@ GLuint ShaderFilesManager::loadShader(const std::string &file, unsigned type)
         code << "#define VSLayer\n";
     if (CVS->needsRGBBindlessWorkaround())
         code << "#define SRGBBindlessFix\n";
+    if (CVS->supportsGPUCulling())
+        code << "#define GPU_CULLING\n";
 
 #if !defined(USE_GLES2)
     // shader compilation fails with some drivers if there is no precision

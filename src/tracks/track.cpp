@@ -29,6 +29,7 @@
 #include "graphics/camera_end.hpp"
 #include "graphics/CBatchingMesh.hpp"
 #include "graphics/central_settings.hpp"
+#include "graphics/culling_manager.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/lod_node.hpp"
 #include "graphics/material.hpp"
@@ -294,6 +295,7 @@ void Track::cleanup()
     ItemManager::destroy();
 #ifndef SERVER_ONLY
     VAOManager::kill();
+    CullingManager::getInstance()->removeTrackMesh();
     ParticleKindManager::get()->cleanUpTrackSpecificGfx();
 #endif
 
@@ -1121,6 +1123,7 @@ bool Track::loadMainTrack(const XMLNode &root)
     merged_mesh->addMesh(mesh);
     merged_mesh->finalize();
 #ifndef SERVER_ONLY
+    CullingManager::getInstance()->addTrackMesh(merged_mesh);
     scene::IMesh* tangent_mesh = MeshTools::createMeshWithTangents(merged_mesh, &MeshTools::isNormalMap);
 
     adjustForFog(tangent_mesh, NULL);

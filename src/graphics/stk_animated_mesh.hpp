@@ -58,6 +58,12 @@ public:
                                                     int offset = -1);
   int getTotalJoints() const;
   void setSkinningOffset(int offset)  { m_skinning_offset = offset; }
+  void cleanSkinningOffset()  { m_skinning_offset = -1; }
+  int getSkinningOffset() const
+  {
+      assert(m_skinning_offset != -1);
+      return m_skinning_offset / 16 / sizeof(float);
+  }
   bool useHardwareSkinning() const { return m_skinned_mesh != NULL; }
   void setHardwareSkinning(bool val);
   void resetSkinningState(scene::IAnimatedMesh*);

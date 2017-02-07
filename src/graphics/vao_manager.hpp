@@ -37,6 +37,7 @@ enum InstanceType : unsigned int
     InstanceTypeShadow,
     InstanceTypeRSM,
     InstanceTypeGlow,
+    InstanceTypeCulling,
     InstanceTypeCount,
 };
 

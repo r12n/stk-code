@@ -63,6 +63,8 @@ public:
     // ------------------------------------------------------------------------
     float getHue() const                              { return m_static_hue; }
     // ------------------------------------------------------------------------
+    const float* getHuePtr() const                   { return &m_static_hue; }
+    // ------------------------------------------------------------------------
     bool isTransparent() const                       { return m_transparent; }
     // ------------------------------------------------------------------------
     void setKartModelRenderInfo(KartRenderType krt)

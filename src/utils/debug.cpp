@@ -26,6 +26,7 @@
 #include "graphics/camera_debug.hpp"
 #include "graphics/camera_fps.hpp"
 #include "karts/explosion_animation.hpp"
+#include "graphics/culling_manager.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/light.hpp"
 #include "graphics/shaders.hpp"
@@ -78,6 +79,8 @@ enum DebugMenuCommand
     DEBUG_GRAPHICS_MIPMAP_VIZ,
     DEBUG_GRAPHICS_NORMALS_VIZ,
     DEBUG_GRAPHICS_SSAO_VIZ,
+    DEBUG_GRAPHICS_TOGGLE_CULLING,
+    DEBUG_GRAPHICS_TOGGLE_CULLING_BB,
     DEBUG_GRAPHICS_RSM_VIZ,
     DEBUG_GRAPHICS_RH_VIZ,
     DEBUG_GRAPHICS_GI_VIZ,
@@ -253,6 +256,7 @@ bool handleContextMenuAction(s32 cmd_id)
             physics->setDebugMode(IrrDebugDrawer::DM_NONE);
 
         irr_driver->resetDebugModes();
+        CullingManager::getInstance()->resetDebug();
         break;
     case DEBUG_GRAPHICS_WIREFRAME:
         if (physics)
@@ -281,6 +285,12 @@ bool handleContextMenuAction(s32 cmd_id)
 
         irr_driver->resetDebugModes();
         irr_driver->toggleSSAOViz();
+        break;
+    case DEBUG_GRAPHICS_TOGGLE_CULLING:
+        CullingManager::getInstance()->toggleViz();
+        break;
+    case DEBUG_GRAPHICS_TOGGLE_CULLING_BB:
+        CullingManager::getInstance()->toggleBBViz();
         break;
     case DEBUG_GRAPHICS_RSM_VIZ:
         if (physics)
@@ -745,6 +755,8 @@ bool onEvent(const SEvent &event)
             sub->addItem(L"Mipmap viz", DEBUG_GRAPHICS_MIPMAP_VIZ );
             sub->addItem(L"Normals viz", DEBUG_GRAPHICS_NORMALS_VIZ );
             sub->addItem(L"SSAO viz", DEBUG_GRAPHICS_SSAO_VIZ );
+            sub->addItem(L"Toggle culling", DEBUG_GRAPHICS_TOGGLE_CULLING);
+            sub->addItem(L"Culling bouding boxes viz", DEBUG_GRAPHICS_TOGGLE_CULLING_BB);
             sub->addItem(L"RSM viz", DEBUG_GRAPHICS_RSM_VIZ);
             sub->addItem(L"RH viz", DEBUG_GRAPHICS_RH_VIZ);
             sub->addItem(L"GI viz", DEBUG_GRAPHICS_GI_VIZ);

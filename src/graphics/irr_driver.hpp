@@ -62,6 +62,7 @@ namespace irr
 using namespace irr;
 
 enum TypeRTT : unsigned int;
+enum TypeFBO : unsigned int;
 class AbstractKart;
 class AbstractRenderer;
 class Camera;
@@ -354,6 +355,8 @@ public:
     // ------------------------------------------------------------------------
     GLuint getRenderTargetTexture(TypeRTT which);
     GLuint getDepthStencilTexture();
+    // ------------------------------------------------------------------------
+    FrameBuffer* getFBO(TypeFBO fbo) const;
     // ------------------------------------------------------------------------
     void resetDebugModes()
     {

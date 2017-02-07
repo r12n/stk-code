@@ -48,21 +48,21 @@ public:
     enum ShaderType
     {
         SHADERTYPE_SOLID = 0,
-        SHADERTYPE_SOLID_SKINNED_MESH,
         SHADERTYPE_ALPHA_TEST,
-        SHADERTYPE_ALPHA_TEST_SKINNED_MESH,
-        SHADERTYPE_ALPHA_BLEND,
-        SHADERTYPE_ADDITIVE,
         SHADERTYPE_SOLID_UNLIT,
-        SHADERTYPE_SOLID_UNLIT_SKINNED_MESH,
         /** Effect that makes grass wave as in the wind */
         SHADERTYPE_VEGETATION,
-        SHADERTYPE_WATER,
-        SHADERTYPE_SPHERE_MAP,
         SHADERTYPE_NORMAL_MAP,
+        SHADERTYPE_SOLID_SKINNED_MESH,
+        SHADERTYPE_ALPHA_TEST_SKINNED_MESH,
+        SHADERTYPE_SOLID_UNLIT_SKINNED_MESH,
         SHADERTYPE_NORMAL_MAP_SKINNED_MESH,
         SHADERTYPE_DETAIL_MAP,
         SHADERTYPE_SPLATTING,
+        SHADERTYPE_ALPHA_BLEND,
+        SHADERTYPE_ADDITIVE,
+        SHADERTYPE_WATER,
+        SHADERTYPE_SPHERE_MAP,
         SHADERTYPE_COUNT,
     };
 
@@ -308,6 +308,11 @@ public:
     /** Returns the minimum resulting saturation when colorized.
      */
     float getColorizationFactor () const { return m_colorization_factor;   }
+    // ------------------------------------------------------------------------
+    /** Returns the minimum resulting saturation when colorized. (pointer)
+     */
+    const float* getColorizationFactorPtr () const
+                                             { return &m_colorization_factor; }
     // ------------------------------------------------------------------------
     /** Returns a random hue when colorized.
      */

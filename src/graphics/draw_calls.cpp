@@ -20,6 +20,7 @@
 
 #include "config/user_config.hpp"
 #include "graphics/command_buffer.hpp"
+#include "graphics/culling_manager.hpp"
 #include "graphics/draw_tools.hpp"
 #include "graphics/gpu_particles.hpp"
 #include "graphics/lod_node.hpp"
@@ -64,6 +65,8 @@ void DrawCalls::clearLists()
     m_immediate_draw_list.clear();
     m_billboard_list.clear();
     m_particles_list.clear();
+
+    CullingManager::getInstance()->cleanMeshList();
 }
 
 // ----------------------------------------------------------------------------
@@ -187,8 +190,6 @@ void DrawCalls::handleSTKCommon(scene::ISceneNode *Node,
     }
 
     bool culled_for_cams[6] = { true, true, true, true, true, true };
-    culled_for_cams[0] = isCulledPrecise(cam, Node,
-        irr_driver->getBoundingBoxesViz());
 
     if (UserConfigParams::m_gi && !shadow_matrices.isRSMMapAvail())
     {
@@ -253,8 +254,14 @@ void DrawCalls::handleSTKCommon(scene::ISceneNode *Node,
     for (GLMesh *mesh : node->TransparentMesh[TM_DISPLACEMENT])
         pushVector(ListDisplacement::getInstance(), mesh, Node->getAbsoluteTransformation());
 
-    int32_t skinning_offset = 0;
     STKAnimatedMesh* am = dynamic_cast<STKAnimatedMesh*>(Node);
+    if (am)// || 1)
+    {
+        culled_for_cams[0] = isCulledPrecise(cam, Node,
+            irr_driver->getBoundingBoxesViz());
+    }
+    int32_t skinning_offset = 0;
+    bool culled_am = false;
     if (am && am->useHardwareSkinning() &&
         (!culled_for_cams[0] || !culled_for_cams[1] || !culled_for_cams[2] ||
         !culled_for_cams[3] || !culled_for_cams[4] || !culled_for_cams[5]))
@@ -265,14 +272,40 @@ void DrawCalls::handleSTKCommon(scene::ISceneNode *Node,
         {
             Log::error("DrawCalls", "Don't have enough space to render skinned"
                 " mesh %s! Max joints can hold: %d",
-                am->getMeshDebugName().c_str(),
+                am->getMeshIdent().c_str(),
                 SharedGPUObjects::getMaxMat4Size());
             return;
         }
         m_mesh_for_skinning.insert(am);
         am->setSkinningOffset(skinning_offset * 16 * sizeof(float));
     }
-
+    else if (am)
+        culled_am = true;
+    if (1)
+    {
+        if (culled_am) return;
+        for (unsigned Mat = 0; Mat <= Material::SHADERTYPE_SPLATTING; Mat++)
+        {
+            for (GLMesh *mesh : node->MeshSolidMaterial[Mat])
+            {
+                if (node->glow())
+                {
+                    CullingManager::getInstance()->addMesh(Node, mesh, 10);
+                }
+                if (Mat == Material::SHADERTYPE_SPLATTING)
+                {
+                    core::matrix4 ModelMatrix = Node->getAbsoluteTransformation(), InvModelMatrix;
+                    ModelMatrix.getInverse(InvModelMatrix);
+                    ListMatSplatting::getInstance()->SolidPass.emplace_back(mesh, ModelMatrix, InvModelMatrix);
+                }
+                else
+                {
+                    CullingManager::getInstance()->addMesh(Node, mesh, (int)Mat);
+                }
+            }
+        }
+        return;
+    }
     if (!culled_for_cams[0])
     {
         for (GLMesh *mesh : node->TransparentMesh[TM_TRANSLUCENT_SKN])
@@ -285,6 +318,7 @@ void DrawCalls::handleSTKCommon(scene::ISceneNode *Node,
         {
             if (CVS->supportsIndirectInstancingRendering())
             {
+                if (Mat == Material::SHADERTYPE_SOLID) continue;
                 for (GLMesh *mesh : node->MeshSolidMaterial[Mat])
                 {
                     if (node->glow())
@@ -684,9 +718,13 @@ void DrawCalls::prepareDrawCalls( ShadowMatrices& shadow_matrices,
         m_deferred_update[i]->updateGL();
     PROFILER_POP_CPU_MARKER();
 
+    CullingManager::getInstance()->generateDrawCall();
+    for (STKAnimatedMesh* am : m_mesh_for_skinning)
+        am->cleanSkinningOffset();
+
     if (!CVS->supportsIndirectInstancingRendering())
         return;
-
+    return;
 #if !defined(USE_GLES2)
     int enableOpenMP = 0;
     

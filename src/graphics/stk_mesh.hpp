@@ -92,7 +92,7 @@ public:
     virtual void updateGL() = 0;
     virtual bool glow() const = 0;
     virtual bool isImmediateDraw() const { return false; }
-    const std::string& getMeshDebugName() const { return m_debug_name; }
+    const std::string& getMeshIdent() const { return m_debug_name; }
 };   // STKMeshCommon
 
 

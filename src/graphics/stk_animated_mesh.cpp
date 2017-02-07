@@ -280,11 +280,7 @@ void STKAnimatedMesh::updateGL()
     if (useHardwareSkinning() && m_skinned_mesh->getTotalJoints() == 0) return;
 
     scene::IMesh* m = getMeshForCurrentFrame();
-    if (useHardwareSkinning())
-    {
-        m_skinning_offset = -1;
-        return;
-    }
+    if (useHardwareSkinning()) return;
 
     for (u32 i = 0; i<m->getMeshBufferCount(); ++i)
     {

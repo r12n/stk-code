@@ -37,6 +37,8 @@ enum STKRenderingPass
 };
 
 enum TypeRTT : unsigned int;
+enum TypeFBO : unsigned int;
+class FrameBuffer;
 
 struct GlowData {
     irr::scene::ISceneNode * node;
@@ -88,7 +90,7 @@ public:
     virtual const SHCoefficients* getSHCoefficients()    const { return NULL; }
     virtual GLuint getRenderTargetTexture(TypeRTT which) const { return 0;}
     virtual GLuint getDepthStencilTexture(             ) const { return 0;}
-    
+    virtual FrameBuffer* getFBO(TypeFBO fbo)             const { return NULL; }
     virtual void setAmbientLight(const irr::video::SColorf &light,
                                   bool force_SH_computation = true) {}
 

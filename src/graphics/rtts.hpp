@@ -36,7 +36,7 @@ namespace irr {
 
 using irr::video::ITexture;
 
-enum TypeFBO
+enum TypeFBO : unsigned int
 {
     FBO_SSAO,
     FBO_NORMAL_AND_DEPTHS,
