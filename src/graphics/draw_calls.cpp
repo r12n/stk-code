@@ -318,7 +318,6 @@ void DrawCalls::handleSTKCommon(scene::ISceneNode *Node,
         {
             if (CVS->supportsIndirectInstancingRendering())
             {
-                if (Mat == Material::SHADERTYPE_SOLID) continue;
                 for (GLMesh *mesh : node->MeshSolidMaterial[Mat])
                 {
                     if (node->glow())

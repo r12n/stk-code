@@ -267,7 +267,7 @@ void IndirectDrawPolicy::drawSolidFirstPass(const DrawCalls& draw_calls) const
         cm->drawSolidFirstPass<DefaultMaterial>();
         cm->drawSolidFirstPass<AlphaRef>();
         cm->drawSolidFirstPass<UnlitMat>();
-        cm->drawSolidFirstPass<GrassMat>(draw_calls.getWindDir());
+        cm->drawSolidFirstPass<GrassMat>(getWindDir());
     }
     if (cm->bindInstanceVAO(NormalMat::VertexType))
     {
@@ -301,7 +301,7 @@ void IndirectDrawPolicy::drawSolidSecondPass (const DrawCalls& draw_calls,
         cm->drawSolidSecondPass<AlphaRef>(prefilled_tex, handles);
         cm->drawSolidSecondPass<UnlitMat>(prefilled_tex, handles);
         cm->drawSolidSecondPass<GrassMat>(prefilled_tex, handles,
-            draw_calls.getWindDir());
+            getWindDir());
     }
     if (cm->bindInstanceVAO(NormalMat::VertexType))
     {
