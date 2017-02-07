@@ -18,6 +18,7 @@
 
 #include "graphics/culling_manager.hpp"
 #include "graphics/central_settings.hpp"
+#include "graphics/command_buffer.hpp"
 #include "graphics/draw_tools.hpp"
 #include "graphics/glwrap.hpp"
 #include "graphics/irr_driver.hpp"
@@ -30,6 +31,7 @@
 #include "graphics/shader_files_manager.hpp"
 #include "graphics/stk_animated_mesh.hpp"
 #include "graphics/stk_mesh.hpp"
+#include "graphics/stk_mesh_scene_node.hpp"
 #include "graphics/vao_manager.hpp"
 #include "utils/profiler.hpp"
 
@@ -180,7 +182,7 @@ void CullingManager::generateDrawCall()
                 p.second.m_obj[0].second->vaoOffset / 2;
             m_instances_ptr[11 + offest_1 * 20] =
                 p.second.m_obj[0].second->vaoBaseVertex;
-            if (m_bindless_texture)
+            if (m_bindless_texture && i != 10)
             {
                 memcpy(m_instances_ptr + 12 + offest_1 * 20,
                     p.second.m_obj[0].second->TextureHandles,
@@ -202,31 +204,48 @@ void CullingManager::generateDrawCall()
                 memcpy(m_instance_objects_ptr + offest_2 * 28,
                     q.first->getAbsoluteTransformation().pointer(),
                     16 * sizeof(float));
-                if (q.second->texture_trans.X != 0 &&
-                    q.second->texture_trans.Y != 0)
+                if (i == 10)
                 {
-                    memcpy(m_instance_objects_ptr + 16 + offest_2 * 28,
-                        &q.second->texture_trans, 2 * sizeof(float));
-                }
-                else
-                {
-                    memcpy(m_instance_objects_ptr + 16 + offest_2 * 28,
-                        zero, 2 * sizeof(float));
-                }
-                if (q.second->m_render_info &&
-                    q.second->m_render_info->getHue() != 0.0f &&
-                    q.second->m_material)
-                {
-                    memcpy(m_instance_objects_ptr + 18 + offest_2 * 28,
-                        q.second->m_render_info->getHuePtr(), sizeof(float));
-                    memcpy(m_instance_objects_ptr + 19 + offest_2 * 28,
-                        q.second->m_material->getColorizationFactorPtr(),
+                    video::SColorf cf(dynamic_cast<STKMeshSceneNode*>(q.first)
+                        ->getGlowColor());
+                    memcpy(m_instance_objects_ptr + 16 + offest_2 * 28, &cf.b,
+                        sizeof(float));
+                    memcpy(m_instance_objects_ptr + 17 + offest_2 * 28, &cf.g,
+                        sizeof(float));
+                    memcpy(m_instance_objects_ptr + 18 + offest_2 * 28, &cf.r,
+                        sizeof(float));
+                    memcpy(m_instance_objects_ptr + 19 + offest_2 * 28, &cf.a,
                         sizeof(float));
                 }
                 else
                 {
-                    memcpy(m_instance_objects_ptr + 18 + offest_2 * 28,
-                        zero, 2 * sizeof(float));
+                    if (q.second->texture_trans.X != 0 &&
+                        q.second->texture_trans.Y != 0)
+                    {
+                        memcpy(m_instance_objects_ptr + 16 + offest_2 * 28,
+                            &q.second->texture_trans, 2 * sizeof(float));
+                    }
+                    else
+                    {
+                        memcpy(m_instance_objects_ptr + 16 + offest_2 * 28,
+                            zero, 2 * sizeof(float));
+                    }
+                    if (q.second->m_render_info &&
+                        q.second->m_render_info->getHue() != 0.0f &&
+                        q.second->m_material)
+                    {
+                        memcpy(m_instance_objects_ptr + 18 + offest_2 * 28,
+                            q.second->m_render_info->getHuePtr(),
+                            sizeof(float));
+                        memcpy(m_instance_objects_ptr + 19 + offest_2 * 28,
+                            q.second->m_material->getColorizationFactorPtr(),
+                            sizeof(float));
+                    }
+                    else
+                    {
+                        memcpy(m_instance_objects_ptr + 18 + offest_2 * 28,
+                            zero, 2 * sizeof(float));
+                    }
                 }
                 m_instance_objects_ptr[20 + offest_2 * 28] = offest_1;
                 m_instance_objects_ptr[21 + offest_2 * 28] =
@@ -437,3 +456,17 @@ bool CullingManager::bindInstanceVAO(video::E_VERTEX_TYPE vt)
     }
     return need_bind;
 }   // bindInstanceVAO
+
+// ----------------------------------------------------------------------------
+void CullingManager::drawGlow()
+{
+    if (m_mesh_lists[10].empty()) return;
+    glBindVertexArray(VAOManager::getInstance()
+        ->getInstanceVAO(video::EVT_STANDARD, InstanceTypeCulling));
+    InstancedColorizeShader::getInstance()->use();
+    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT,
+        (GLvoid*)(STK::tuple_get<1>(m_mesh_infos[10]) *
+        sizeof(DrawElementsIndirectCommand)),
+        STK::tuple_get<0>(m_mesh_infos[10]),
+        sizeof(DrawElementsIndirectCommand));
+}   // drawGlow

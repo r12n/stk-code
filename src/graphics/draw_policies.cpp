@@ -335,7 +335,7 @@ void IndirectDrawPolicy::drawGlow(const DrawCalls& draw_calls,
                                   const std::vector<GlowData>& glows) const
 {
 #if !defined(USE_GLES2)
-    draw_calls.drawIndirectGlow();
+    CullingManager::getInstance()->drawGlow();
 #endif // !defined(USE_GLES2)
 }
 
