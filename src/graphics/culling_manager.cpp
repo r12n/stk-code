@@ -98,7 +98,7 @@ CullingManager::CullingManager()
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_instances);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, m_instances);
     glBufferStorage(GL_SHADER_STORAGE_BUFFER, 1000 * 5 * 4 * sizeof(uint32_t),
-        NULL, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
+        NULL, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
     m_instances_ptr = (uint32_t*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0,
         1000 * 5 * 4 * sizeof(uint32_t),
         GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
@@ -113,7 +113,7 @@ CullingManager::CullingManager()
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_instance_objects);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_instance_objects);
     glBufferStorage(GL_SHADER_STORAGE_BUFFER, 10000 * 28 * sizeof(uint32_t),
-        NULL, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
+        NULL, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
     m_instance_objects_ptr = (uint32_t*)
         glMapBufferRange(GL_SHADER_STORAGE_BUFFER,
         0, 10000 * 28 * sizeof(uint32_t),
@@ -302,19 +302,6 @@ void CullingManager::generateDrawCall()
     glDrawArrays(GL_POINTS, 0, m_total_instance_count);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-
-    GLsync sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-    GLenum reason = glClientWaitSync(sync, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
-    if (reason != GL_ALREADY_SIGNALED)
-    {
-        do
-        {
-            reason = glClientWaitSync(sync, GL_SYNC_FLUSH_COMMANDS_BIT,
-                1000000);
-        }
-        while (reason == GL_TIMEOUT_EXPIRED);
-    }
-    glDeleteSync(sync);
 
 #undef DEBUG_OUTPUT
 #ifdef DEBUG_OUTPUT
