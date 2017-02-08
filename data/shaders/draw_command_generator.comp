@@ -1,8 +1,10 @@
+layout (local_size_x = 1) in;
+
 #stk_include "utils/culling_info.vert"
 
 void main(void)
 {
-    int cmd_index = gl_VertexID;
+    int cmd_index = int(gl_GlobalInvocationID.x);
     cmds[cmd_index].m_index_count = 0;
     cmds[cmd_index].m_instance_count = 0;
     cmds[cmd_index].m_first_index = 0;

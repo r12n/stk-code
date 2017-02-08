@@ -68,7 +68,7 @@ class DrawCommandGenerator : public Shader<DrawCommandGenerator>
 public:
     DrawCommandGenerator()
     {
-        loadProgram(OBJECT, GL_VERTEX_SHADER, "draw_command_generator.vert");
+        loadProgram(OBJECT, GL_COMPUTE_SHADER, "draw_command_generator.comp");
     }   // DrawCommandGenerator
 };
 
@@ -148,14 +148,11 @@ void CullingManager::generateDrawCall()
     PROFILER_PUSH_CPU_MARKER("- GPU culling", 0x0, 0x50, 0xFF);
     for (int i = 0; i < 11; i++)
     {
-        STK::tuple_get<0>(m_mesh_infos[i]) = m_mesh_lists[i].size();
-        STK::tuple_get<1>(m_mesh_infos[i]) = i == 0 ? 0 :
-            STK::tuple_get<0>(m_mesh_infos[i - 1]) +
-            STK::tuple_get<1>(m_mesh_infos[i - 1]);
+        m_mesh_list_offsets[i] = i == 0 ? 0 :
+            m_mesh_lists[i - 1].size() + m_mesh_list_offsets[i - 1];
         for (auto& p : m_mesh_lists[i])
-            STK::tuple_get<2>(m_mesh_infos[i]) += p.second.m_obj.size();
+            m_total_instance_object_count += p.second.m_obj.size();
         m_total_instance_count += m_mesh_lists[i].size();
-        m_total_instance_object_count += STK::tuple_get<2>(m_mesh_infos[i]);
     }
 
     int offest_1 = 0;
@@ -262,7 +259,6 @@ void CullingManager::generateDrawCall()
             offest_1++;
         }
     }
-    glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 
     FrameBuffer* fbo = irr_driver->getFBO(FBO_NORMAL_AND_DEPTHS);
     fbo->bind();
@@ -299,7 +295,7 @@ void CullingManager::generateDrawCall()
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
     DrawCommandGenerator::getInstance()->use();
-    glDrawArrays(GL_POINTS, 0, m_total_instance_count);
+    glDispatchCompute(m_total_instance_count, 1, 1);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
@@ -324,8 +320,7 @@ void CullingManager::cleanMeshList()
     if (m_visualization) return;
     for (int i = 0; i < 11; i++)
         m_mesh_lists[i].clear();
-    for (auto &p : m_mesh_infos)
-        p = {0, 0, 0};
+    memset(m_mesh_list_offsets, 0, sizeof(int) * 11);
     m_total_instance_count = 0;
     m_total_instance_object_count = 0;
 }   // cleanMeshList
@@ -389,7 +384,7 @@ void CullingManager::removeTrackMesh()
     if (m_track_vbo)
     {
         glDeleteBuffers(1, &m_track_vbo);
-        m_track_vao = 0;
+        m_track_vbo = 0;
     }
 }   // removeTrackMesh
 
@@ -452,8 +447,7 @@ void CullingManager::drawGlow()
         ->getInstanceVAO(video::EVT_STANDARD, InstanceTypeCulling));
     InstancedColorizeShader::getInstance()->use();
     glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT,
-        (GLvoid*)(STK::tuple_get<1>(m_mesh_infos[10]) *
-        sizeof(DrawElementsIndirectCommand)),
-        STK::tuple_get<0>(m_mesh_infos[10]),
+        (GLvoid*)(m_mesh_list_offsets[10] *
+        sizeof(DrawElementsIndirectCommand)), m_mesh_lists[10].size(),
         sizeof(DrawElementsIndirectCommand));
 }   // drawGlow

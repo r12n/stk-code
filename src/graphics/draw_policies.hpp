@@ -31,19 +31,19 @@ class GL3DrawPolicy
 {
 public:
     void drawSolidFirstPass     (const DrawCalls& draw_calls             ) const;
-    
+
     void drawSolidSecondPass    (const DrawCalls& draw_calls,
                                  const std::vector<uint64_t>& handles,
                                  const std::vector<GLuint>& prefilled_tex) const;
-                             
+
     void drawNormals            (const DrawCalls& draw_calls             ) const {}
-    
+
     void drawGlow               (const DrawCalls& draw_calls,
                                  const std::vector<GlowData>& glows      ) const;
-                                     
+
     void drawShadows            (const DrawCalls& draw_calls,
                                 unsigned cascade                         ) const;
-    
+
     void drawReflectiveShadowMap(const DrawCalls& draw_calls,
                                  const core::matrix4 &rsm_matrix         ) const;
 };
@@ -55,19 +55,19 @@ class IndirectDrawPolicy
 {
 public:
     void drawSolidFirstPass     (const DrawCalls& draw_calls             ) const;
-    
+
     void drawSolidSecondPass    (const DrawCalls& draw_calls,
                                  const std::vector<uint64_t>& handles,
                                  const std::vector<GLuint>& prefilled_tex) const;
-                             
+
     void drawNormals            (const DrawCalls& draw_calls             ) const;
-    
+
     void drawGlow               (const DrawCalls& draw_calls,
                                  const std::vector<GlowData>& glows      ) const;
-    
+
     void drawShadows            (const DrawCalls& draw_calls,
                                 unsigned cascade                         ) const;
-    
+
     void drawReflectiveShadowMap(const DrawCalls& draw_calls,
                                  const core::matrix4 &rsm_matrix         ) const;
 };
@@ -78,21 +78,43 @@ class MultidrawPolicy
 {
 public:
     void drawSolidFirstPass     (const DrawCalls& draw_calls             ) const;
-    
+
     void drawSolidSecondPass    (const DrawCalls& draw_calls,
                                  const std::vector<uint64_t>& handles,
                                  const std::vector<GLuint>& prefilled_tex) const;
-                             
+
     void drawNormals            (const DrawCalls& draw_calls             ) const;
-    
+
     void drawGlow               (const DrawCalls& draw_calls,
                                  const std::vector<GlowData>& glows      ) const;
-                                     
+
     void drawShadows            (const DrawCalls& draw_calls,
                                 unsigned cascade                         ) const;
-    
+
     void drawReflectiveShadowMap(const DrawCalls& draw_calls,
-                                 const core::matrix4 &rsm_matrix         ) const;  
+                                 const core::matrix4 &rsm_matrix         ) const;
+};
+
+/** Allow self-gpu generating draw calls and do occlusion culling. */
+class GPUCullingPolicy
+{
+public:
+    void drawSolidFirstPass     (const DrawCalls& draw_calls             ) const;
+
+    void drawSolidSecondPass    (const DrawCalls& draw_calls,
+                                 const std::vector<uint64_t>& handles,
+                                 const std::vector<GLuint>& prefilled_tex) const;
+
+    void drawNormals            (const DrawCalls& draw_calls             ) const;
+
+    void drawGlow               (const DrawCalls& draw_calls,
+                                 const std::vector<GlowData>& glows      ) const;
+
+    void drawShadows            (const DrawCalls& draw_calls,
+                                unsigned cascade                         ) const;
+
+    void drawReflectiveShadowMap(const DrawCalls& draw_calls,
+                                 const core::matrix4 &rsm_matrix         ) const;
 };
 
 #endif   // !SERVER_ONLY

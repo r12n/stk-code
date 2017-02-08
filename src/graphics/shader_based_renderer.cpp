@@ -633,6 +633,11 @@ ShaderBasedRenderer::ShaderBasedRenderer()
         m_geometry_passes = new GeometryPasses<MultidrawPolicy>();
         Log::info("ShaderBasedRenderer", "Geometry will be rendered with multidraw policy.");
     }
+    else if (CVS->supportsGPUCulling())
+    {
+        m_geometry_passes = new GeometryPasses<GPUCullingPolicy>();
+        Log::info("ShaderBasedRenderer", "Geometry will be rendered with gpu culling policy.");
+    }
     else if (CVS->supportsIndirectInstancingRendering())
     {
         m_geometry_passes = new GeometryPasses<IndirectDrawPolicy>();

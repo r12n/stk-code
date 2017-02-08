@@ -63,7 +63,7 @@ private:
 
     std::unordered_map<scene::IMeshBuffer*, InstanceData> m_mesh_lists[11];
 
-    STK::Tuple<int, int, int> m_mesh_infos[11];
+    int m_mesh_list_offsets[11];
 
 public:
     // ------------------------------------------------------------------------
@@ -100,8 +100,6 @@ public:
         Material::InstancedFirstPassShader::getInstance()
             ->setUniforms(uniforms...);
         const unsigned int mat_int = unsigned(Material::MaterialType);
-        const unsigned int base_offset =
-            STK::tuple_get<1>(m_mesh_infos[mat_int]);
         unsigned int count = 0;
         for (auto &p : m_mesh_lists[mat_int])
         {
@@ -111,7 +109,7 @@ public:
             if (!mesh->mb->getMaterial().BackfaceCulling)
                 glDisable(GL_CULL_FACE);
             glDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT,
-                (GLvoid*)((base_offset + count) *
+                (GLvoid*)((m_mesh_list_offsets[mat_int] + count) *
                 sizeof(DrawElementsIndirectCommand)));
             if (!mesh->mb->getMaterial().BackfaceCulling)
                 glEnable(GL_CULL_FACE);
@@ -128,8 +126,6 @@ public:
         Material::InstancedSecondPassShader::getInstance()
             ->setUniforms(uniforms...);
         const unsigned int mat_int = unsigned(Material::MaterialType);
-        const unsigned int base_offset =
-            STK::tuple_get<1>(m_mesh_infos[mat_int]);
         unsigned int count = 0;
         for (auto &p : m_mesh_lists[mat_int])
         {
@@ -138,7 +134,7 @@ public:
             if (!mesh->mb->getMaterial().BackfaceCulling)
                 glDisable(GL_CULL_FACE);
             glDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT,
-                (GLvoid*)((base_offset + count) *
+                (GLvoid*)((m_mesh_list_offsets[mat_int] + count) *
                 sizeof(DrawElementsIndirectCommand)));
             if (!mesh->mb->getMaterial().BackfaceCulling)
                 glEnable(GL_CULL_FACE);

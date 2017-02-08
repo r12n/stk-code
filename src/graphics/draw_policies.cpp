@@ -253,7 +253,7 @@ void GL3DrawPolicy::drawReflectiveShadowMap(const DrawCalls& draw_calls,
     drawRSM<NormalMat, 3, 1>(rsm_matrix);
     drawRSM<UnlitMat, 3, 1>(rsm_matrix);
     drawRSM<DetailMat, 3, 1>(rsm_matrix);
-    drawRSM<SplattingMat, 1>(rsm_matrix);    
+    drawRSM<SplattingMat, 1>(rsm_matrix);
 }
 
 
@@ -261,30 +261,8 @@ void GL3DrawPolicy::drawReflectiveShadowMap(const DrawCalls& draw_calls,
 void IndirectDrawPolicy::drawSolidFirstPass(const DrawCalls& draw_calls) const
 {
 #if !defined(USE_GLES2)
-    CullingManager* cm = CullingManager::getInstance();
-    if (cm->bindInstanceVAO(DefaultMaterial::VertexType))
-    {
-        cm->drawSolidFirstPass<DefaultMaterial>();
-        cm->drawSolidFirstPass<AlphaRef>();
-        cm->drawSolidFirstPass<UnlitMat>();
-        cm->drawSolidFirstPass<GrassMat>(getWindDir());
-    }
-    if (cm->bindInstanceVAO(NormalMat::VertexType))
-    {
-        cm->drawSolidFirstPass<NormalMat>();
-    }
-    if (cm->bindInstanceVAO(SkinnedSolid::VertexType))
-    {
-        cm->drawSolidFirstPass<SkinnedSolid>();
-        cm->drawSolidFirstPass<SkinnedAlphaRef>();
-        cm->drawSolidFirstPass<SkinnedUnlitMat>();
-        cm->drawSolidFirstPass<SkinnedNormalMat>();
-    }
-    if (cm->bindInstanceVAO(DetailMat::VertexType))
-    {
-        cm->drawSolidFirstPass<DetailMat>();
-    }
     renderMeshes1stPass<SplattingMat, 2, 1>();
+    draw_calls.drawIndirectSolidFirstPass();
 #endif //!defined(USE_GLES2)
 }
 
@@ -294,31 +272,8 @@ void IndirectDrawPolicy::drawSolidSecondPass (const DrawCalls& draw_calls,
                                               const std::vector<GLuint>& prefilled_tex) const
 {
 #if !defined(USE_GLES2)
-    CullingManager* cm = CullingManager::getInstance();
-    if (cm->bindInstanceVAO(DefaultMaterial::VertexType))
-    {
-        cm->drawSolidSecondPass<DefaultMaterial>(prefilled_tex, handles);
-        cm->drawSolidSecondPass<AlphaRef>(prefilled_tex, handles);
-        cm->drawSolidSecondPass<UnlitMat>(prefilled_tex, handles);
-        cm->drawSolidSecondPass<GrassMat>(prefilled_tex, handles,
-            getWindDir());
-    }
-    if (cm->bindInstanceVAO(NormalMat::VertexType))
-    {
-        cm->drawSolidSecondPass<NormalMat>(prefilled_tex, handles);
-    }
-    if (cm->bindInstanceVAO(SkinnedSolid::VertexType))
-    {
-        cm->drawSolidSecondPass<SkinnedSolid>(prefilled_tex, handles);
-        cm->drawSolidSecondPass<SkinnedAlphaRef>(prefilled_tex, handles);
-        cm->drawSolidSecondPass<SkinnedUnlitMat>(prefilled_tex, handles);
-        cm->drawSolidSecondPass<SkinnedNormalMat>(prefilled_tex, handles);
-    }
-    if (cm->bindInstanceVAO(DetailMat::VertexType))
-    {
-        cm->drawSolidSecondPass<DetailMat>(prefilled_tex, handles);
-    }
     renderMeshes2ndPass<SplattingMat, 1> (handles, prefilled_tex);
+    draw_calls.drawIndirectSolidSecondPass(prefilled_tex);
 #endif //!defined(USE_GLES2)
 }
 
@@ -335,7 +290,7 @@ void IndirectDrawPolicy::drawGlow(const DrawCalls& draw_calls,
                                   const std::vector<GlowData>& glows) const
 {
 #if !defined(USE_GLES2)
-    CullingManager::getInstance()->drawGlow();
+    draw_calls.drawIndirectGlow();
 #endif // !defined(USE_GLES2)
 }
 
@@ -412,5 +367,104 @@ void MultidrawPolicy::drawReflectiveShadowMap(const DrawCalls& draw_calls,
     draw_calls.multidrawReflectiveShadowMaps(rsm_matrix);
 #endif //!defined(USE_GLES2)
 }
+
+// ----------------------------------------------------------------------------
+void GPUCullingPolicy::drawSolidFirstPass(const DrawCalls& draw_calls) const
+{
+#if !defined(USE_GLES2)
+    CullingManager* cm = CullingManager::getInstance();
+    if (cm->bindInstanceVAO(DefaultMaterial::VertexType))
+    {
+        cm->drawSolidFirstPass<DefaultMaterial>();
+        cm->drawSolidFirstPass<AlphaRef>();
+        cm->drawSolidFirstPass<UnlitMat>();
+        cm->drawSolidFirstPass<GrassMat>(getWindDir());
+    }
+    if (cm->bindInstanceVAO(NormalMat::VertexType))
+    {
+        cm->drawSolidFirstPass<NormalMat>();
+    }
+    if (cm->bindInstanceVAO(SkinnedSolid::VertexType))
+    {
+        cm->drawSolidFirstPass<SkinnedSolid>();
+        cm->drawSolidFirstPass<SkinnedAlphaRef>();
+        cm->drawSolidFirstPass<SkinnedUnlitMat>();
+        cm->drawSolidFirstPass<SkinnedNormalMat>();
+    }
+    if (cm->bindInstanceVAO(DetailMat::VertexType))
+    {
+        cm->drawSolidFirstPass<DetailMat>();
+    }
+    renderMeshes1stPass<SplattingMat, 2, 1>();
+#endif //!defined(USE_GLES2)
+}   // drawSolidFirstPass
+
+// ----------------------------------------------------------------------------
+void GPUCullingPolicy::drawSolidSecondPass(const DrawCalls& draw_calls,
+                                          const std::vector<uint64_t>& handles,
+                                const std::vector<GLuint>& prefilled_tex) const
+{
+#if !defined(USE_GLES2)
+    CullingManager* cm = CullingManager::getInstance();
+    if (cm->bindInstanceVAO(DefaultMaterial::VertexType))
+    {
+        cm->drawSolidSecondPass<DefaultMaterial>(prefilled_tex, handles);
+        cm->drawSolidSecondPass<AlphaRef>(prefilled_tex, handles);
+        cm->drawSolidSecondPass<UnlitMat>(prefilled_tex, handles);
+        cm->drawSolidSecondPass<GrassMat>(prefilled_tex, handles,
+            getWindDir());
+    }
+    if (cm->bindInstanceVAO(NormalMat::VertexType))
+    {
+        cm->drawSolidSecondPass<NormalMat>(prefilled_tex, handles);
+    }
+    if (cm->bindInstanceVAO(SkinnedSolid::VertexType))
+    {
+        cm->drawSolidSecondPass<SkinnedSolid>(prefilled_tex, handles);
+        cm->drawSolidSecondPass<SkinnedAlphaRef>(prefilled_tex, handles);
+        cm->drawSolidSecondPass<SkinnedUnlitMat>(prefilled_tex, handles);
+        cm->drawSolidSecondPass<SkinnedNormalMat>(prefilled_tex, handles);
+    }
+    if (cm->bindInstanceVAO(DetailMat::VertexType))
+    {
+        cm->drawSolidSecondPass<DetailMat>(prefilled_tex, handles);
+    }
+    renderMeshes2ndPass<SplattingMat, 1> (handles, prefilled_tex);
+#endif //!defined(USE_GLES2)
+}   // drawSolidSecondPass
+
+// ----------------------------------------------------------------------------
+void GPUCullingPolicy::drawNormals(const DrawCalls& draw_calls) const
+{
+}   // drawNormals
+
+// ----------------------------------------------------------------------------
+void GPUCullingPolicy::drawGlow(const DrawCalls& draw_calls,
+                                const std::vector<GlowData>& glows) const
+{
+#if !defined(USE_GLES2)
+    CullingManager::getInstance()->drawGlow();
+#endif // !defined(USE_GLES2)
+}   // drawGlow
+
+// ----------------------------------------------------------------------------
+void GPUCullingPolicy::drawShadows(const DrawCalls& draw_calls,
+                                   unsigned cascade) const
+{
+    return;
+}   // drawShadows
+
+// ----------------------------------------------------------------------------
+void GPUCullingPolicy::drawReflectiveShadowMap(const DrawCalls& draw_calls,
+                                               const core::matrix4 &rsm_matrix)
+                                                                          const
+{
+    drawRSM<DefaultMaterial, 3, 1>(rsm_matrix);
+    drawRSM<AlphaRef, 3, 1>(rsm_matrix);
+    drawRSM<NormalMat, 3, 1>(rsm_matrix);
+    drawRSM<UnlitMat, 3, 1>(rsm_matrix);
+    drawRSM<DetailMat, 3, 1>(rsm_matrix);
+    drawRSM<SplattingMat, 1>(rsm_matrix);
+}   // drawReflectiveShadowMap
 
 #endif   // !SERVER_ONLY

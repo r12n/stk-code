@@ -493,7 +493,9 @@ bool CentralVideoSettings::supportsGPUCulling() const
         && isARBMultiDrawIndirectUsable() && supportsAsyncInstanceUpload()
         && isARBExplicitAttribLocationUsable()
         && isARBShaderAtomicCountersUsable()
-        && isARBShaderStorageBufferObjectUsable();
+        && isARBShaderStorageBufferObjectUsable()
+        && isARBGeometryShadersUsable() && isARBComputeShaderUsable()
+        && supportsIndirectInstancingRendering();
 }
 
 #endif   // !SERVER_ONLY
